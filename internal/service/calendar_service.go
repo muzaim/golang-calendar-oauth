@@ -82,7 +82,6 @@ func (s *calendarService) CreateEvent(ctx context.Context, userID int64, req dto
 		EndTime:     req.EndTime,
 	}
 
-	// Try to sync with Google Calendar API if user has connected Google account
 	user, err := s.userRepo.FindByID(userID)
 	if err == nil && user != nil && user.GoogleAccessToken != nil {
 		srv, err := s.getGoogleCalendarClient(ctx, user)
@@ -130,7 +129,6 @@ func (s *calendarService) UpdateEvent(ctx context.Context, userID int64, id int6
 	event.StartTime = req.StartTime
 	event.EndTime = req.EndTime
 
-	// Try to update on Google Calendar if GoogleEventID exists
 	if event.GoogleEventID != nil {
 		user, err := s.userRepo.FindByID(userID)
 		if err == nil && user != nil && user.GoogleAccessToken != nil {
@@ -164,15 +162,14 @@ func (s *calendarService) UpdateEvent(ctx context.Context, userID int64, id int6
 }
 
 func (s *calendarService) DeleteEvent(ctx context.Context, userID int64, id int64) error {
-	event, err := s.eventRepo.FindByIDAndUserID(id, userID)
-	if err != nil {
-		return err
+	event, eventErr := s.eventRepo.FindByIDAndUserID(id, userID)
+	if eventErr != nil {
+		return eventErr
 	}
 	if event == nil {
 		return ErrEventNotFound
 	}
 
-	// Try to delete from Google Calendar if synced
 	if event.GoogleEventID != nil {
 		user, err := s.userRepo.FindByID(userID)
 		if err == nil && user != nil && user.GoogleAccessToken != nil {

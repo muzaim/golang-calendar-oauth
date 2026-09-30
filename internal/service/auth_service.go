@@ -111,7 +111,6 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (*dto.AuthRespon
 		return nil, ErrUserNotFound
 	}
 
-	// Delete used refresh token (token rotation)
 	_ = s.refreshTokenRepo.DeleteByToken(req.RefreshToken)
 
 	return s.generateTokensAndResponse(user)
@@ -155,21 +154,19 @@ func (s *authService) HandleGoogleCallback(ctx context.Context, code string) (*d
 	}
 
 	if user == nil {
-		// Register new user via Google
 		providerID := googleUser.ID
 		avatar := googleUser.Picture
 		user = &model.User{
-			Name:         googleUser.Name,
-			Email:        googleUser.Email,
-			Provider:     "google",
-			ProviderID:   &providerID,
-			Avatar:       &avatar,
+			Name:       googleUser.Name,
+			Email:      googleUser.Email,
+			Provider:   "google",
+			ProviderID: &providerID,
+			Avatar:     &avatar,
 		}
 		if err := s.userRepo.Create(user); err != nil {
 			return nil, err
 		}
 	} else {
-		// Update existing user with google info if provider isn't set or provider_id is missing
 		providerID := googleUser.ID
 		avatar := googleUser.Picture
 		user.ProviderID = &providerID
@@ -177,7 +174,6 @@ func (s *authService) HandleGoogleCallback(ctx context.Context, code string) (*d
 		_ = s.userRepo.Update(user)
 	}
 
-	// Save Google OAuth tokens for Calendar API calls
 	_ = s.userRepo.UpdateGoogleTokens(user.ID, token.AccessToken, token.RefreshToken, token.Expiry)
 
 	return s.generateTokensAndResponse(user)
@@ -194,7 +190,6 @@ func (s *authService) generateTokensAndResponse(user *model.User) (*dto.AuthResp
 		return nil, err
 	}
 
-	// Store refresh token in DB
 	tokenRecord := &model.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshToken,

@@ -22,14 +22,12 @@ func SetupRouter(
 
 	r := gin.Default()
 
-	// Health Check
 	r.GET("/health", func(c *gin.Context) {
 		response.Success(c, http.StatusOK, "Server is healthy", gin.H{"status": "ok"})
 	})
 
 	api := r.Group("/api")
 	{
-		// Auth Routes
 		authGroup := api.Group("/auth")
 		{
 			authGroup.POST("/register", authHandler.Register)
@@ -39,7 +37,6 @@ func SetupRouter(
 			authGroup.GET("/google", authHandler.GoogleLogin)
 			authGroup.GET("/google/callback", authHandler.GoogleCallback)
 
-			// Protected Auth Endpoint
 			protectedAuth := authGroup.Group("")
 			protectedAuth.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 			{
@@ -47,7 +44,6 @@ func SetupRouter(
 			}
 		}
 
-		// Calendar Routes (Protected)
 		calendarGroup := api.Group("/calendar")
 		calendarGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		{

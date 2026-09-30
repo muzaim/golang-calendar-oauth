@@ -9,7 +9,6 @@ func TestJWTGenerationAndValidation(t *testing.T) {
 	userID := int64(42)
 	email := "user@example.com"
 
-	// 1. Access Token
 	token, err := GenerateAccessToken(userID, email, secret, 1)
 	if err != nil {
 		t.Fatalf("Failed to generate access token: %v", err)
@@ -28,7 +27,6 @@ func TestJWTGenerationAndValidation(t *testing.T) {
 		t.Errorf("Expected Email %s, got %s", email, claims.Email)
 	}
 
-	// Invalid Secret
 	_, err = ValidateToken(token, "wrongsecret")
 	if err == nil {
 		t.Errorf("Expected validation error for invalid secret")

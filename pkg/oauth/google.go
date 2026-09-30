@@ -43,7 +43,6 @@ func NewGoogleOAuth(cfg *config.Config) *GoogleOAuth {
 }
 
 func (g *GoogleOAuth) GetAuthURL(state string) string {
-	// AccessTypeOffline asks for refresh token
 	return g.Config.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 }
 
@@ -72,7 +71,6 @@ func (g *GoogleOAuth) GetGoogleUserInfo(ctx context.Context, token *oauth2.Token
 }
 
 func (g *GoogleOAuth) GetCalendarService(ctx context.Context, token *oauth2.Token) (*calendar.Service, error) {
-	// TokenSource will automatically refresh access token if expired when using client!
 	client := g.Config.Client(ctx, token)
 	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
