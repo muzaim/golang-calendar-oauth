@@ -115,6 +115,26 @@ func (h *AuthHandler) Me(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Profile retrieved successfully", user)
 }
 
+func (h *AuthHandler) MeWithEvents(c *gin.Context) {
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
+	userWithEvents, err := h.authService.GetProfileWithEvents(userID)
+	if err != nil {
+		if errors.Is(err, service.ErrUserNotFound) {
+			response.Error(c, http.StatusNotFound, err.Error(), nil)
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "Failed to get profile with events", nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Profile with events retrieved successfully", userWithEvents)
+}
+
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	url := h.authService.GetGoogleAuthURL()
 	c.Redirect(http.StatusTemporaryRedirect, url)

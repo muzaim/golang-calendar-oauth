@@ -24,6 +24,16 @@ type UserResponse struct {
 	CreatedAt string  `json:"created_at"`
 }
 
+type UserWithEventsResponse struct {
+	ID        int64           `json:"id"`
+	Name      string          `json:"name"`
+	Email     string          `json:"email"`
+	Provider  string          `json:"provider"`
+	Avatar    *string         `json:"avatar,omitempty"`
+	CreatedAt string          `json:"created_at"`
+	Events    []EventResponse `json:"events"`
+}
+
 type AuthResponse struct {
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token"`

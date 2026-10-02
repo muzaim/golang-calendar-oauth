@@ -26,6 +26,7 @@ type AuthService interface {
 	RefreshToken(req dto.RefreshTokenRequest) (*dto.AuthResponse, error)
 	Logout(refreshToken string) error
 	GetProfile(userID int64) (*dto.UserResponse, error)
+	GetProfileWithEvents(userID int64) (*dto.UserWithEventsResponse, error)
 	GetGoogleAuthURL() string
 	HandleGoogleCallback(ctx context.Context, code string) (*dto.AuthResponse, error)
 }
@@ -131,6 +132,42 @@ func (s *authService) GetProfile(userID int64) (*dto.UserResponse, error) {
 
 	userResp := s.toUserResponse(user)
 	return &userResp, nil
+}
+
+func (s *authService) GetProfileWithEvents(userID int64) (*dto.UserWithEventsResponse, error) {
+	user, err := s.userRepo.FindByIDWithEvents(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	eventsResp := make([]dto.EventResponse, 0, len(user.Events))
+	for _, ev := range user.Events {
+		eventsResp = append(eventsResp, dto.EventResponse{
+			ID:            ev.ID,
+			UserID:        ev.UserID,
+			GoogleEventID: ev.GoogleEventID,
+			Title:         ev.Title,
+			Description:   ev.Description,
+			Location:      ev.Location,
+			StartTime:     ev.StartTime,
+			EndTime:       ev.EndTime,
+			CreatedAt:     ev.CreatedAt,
+			UpdatedAt:     ev.UpdatedAt,
+		})
+	}
+
+	return &dto.UserWithEventsResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Provider:  user.Provider,
+		Avatar:    user.Avatar,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+		Events:    eventsResp,
+	}, nil
 }
 
 func (s *authService) GetGoogleAuthURL() string {

@@ -13,6 +13,7 @@ type UserRepository interface {
 	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
 	FindByID(id int64) (*model.User, error)
+	FindByIDWithEvents(id int64) (*model.User, error)
 	FindByProviderID(provider string, providerID string) (*model.User, error)
 	UpdateGoogleTokens(userID int64, accessToken, refreshToken string, expiresAt time.Time) error
 	Update(user *model.User) error
@@ -45,6 +46,22 @@ func (r *userRepository) FindByEmail(email string) (*model.User, error) {
 func (r *userRepository) FindByID(id int64) (*model.User, error) {
 	var user model.User
 	err := r.db.First(&user, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) FindByIDWithEvents(id int64) (*model.User, error) {
+	var user model.User
+
+	err := r.db.Preload("Events", func(db *gorm.DB) *gorm.DB {
+		return db.Order("start_time DESC").Limit(2)
+	}).First(&user, id).Error
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

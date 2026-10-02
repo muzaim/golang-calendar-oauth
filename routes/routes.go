@@ -41,6 +41,7 @@ func SetupRouter(
 			protectedAuth.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 			{
 				protectedAuth.GET("/me", authHandler.Me)
+				protectedAuth.GET("/me/events", authHandler.MeWithEvents)
 			}
 		}
 
